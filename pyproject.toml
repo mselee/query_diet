@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "query_diet"
+version = "0.1.1"
+description = "A diet for losing query fats."
+authors = ["Mohamed Seleem <hi@mselee.com>"]
+homepage = "https://github.com/mselee/query_diet"
+
+[tool.poetry.dependencies]
+python = "^3.6.1"
+pandas = "^1.0.1"
+shortuuid = "^0.5.0"
+contextvars = { version = "^2.4", python = "<3.7" }
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+django-extensions = "^2.2.6"
+black = {version = "^19.10b0", allow-prereleases = true}
+flake8 = "^3.7.9"
+django = "^3.0.3"
+pytest-django = "^3.8.0"
+isort = "^4.3.21"
+factory-boy = "^2.12.0"
+
+[tool.black]
+line-length = 140
+target-version = ['py38']
+
+[tool.isort]
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+line_length = 140
+
+[build-system]
+requires = ["poetry>=1.0"]
+build-backend = "poetry.masonry.api"

@@ -1,0 +1,12 @@
+pre-push:
+  parallel: true
+  commands:
+    check:
+      run: make check
+pre-commit:
+  parallel: true
+  commands:
+    check:
+      run: make check
+    pytest:
+      run: make test
