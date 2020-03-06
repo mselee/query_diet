@@ -16,6 +16,7 @@ def new_get(self, instance, cls=None):
         return self
     data = instance.__dict__
     field_name = self.field.attname
+    lazy = False
     if data.get(field_name, self) is self:
         # Let's see if the field is part of the parent chain. If so we
         # might be able to reuse the already loaded value. Refs #18343.
@@ -23,15 +24,15 @@ def new_get(self, instance, cls=None):
         if val is None:
             instance.refresh_from_db(fields=[field_name])
             val = getattr(instance, field_name)
-
-            if tracker := context.tracker():
-                tracker.track_access(
-                    instance.__class__, instance.pk, field_name, instance.query_id, lazy=True,
-                )
+            lazy = True
         data[field_name] = val
-    else:
-        if tracker := context.tracker():
-            tracker.track_access(instance.__class__, instance.pk, field_name, instance.query_id)
+
+    tracker = context.tracker()
+    if tracker:
+        tracker.track_access(
+            instance.__class__, instance.pk, field_name, instance.query_id, lazy=lazy,
+        )
+
     return data[field_name]
 
 
@@ -47,7 +48,8 @@ def new_des_get(self, instance, cls=None):
     lazy = not self.field.is_cached(instance)
     ret = old_des_get(self, instance, cls=cls)
 
-    if tracker := context.tracker():
+    tracker = context.tracker()
+    if tracker:
         tracker.track_access(
             instance.__class__, instance.pk, self.field.name, instance.query_id, lazy=lazy,
         )
@@ -81,12 +83,14 @@ old_getter = models.Model.__getattribute__
 def __getattribute__(self, name):
     try:
         fields = old_getter(self, "query_fields")
-        if name in fields and (tracker := context.tracker()):
-            model = old_getter(self, "__class__")
-            pk = old_getter(self, "pk")
-            query_id = old_getter(self, "query_id")
+        if name in fields:
+            tracker = context.tracker()
+            if tracker:
+                model = old_getter(self, "__class__")
+                pk = old_getter(self, "pk")
+                query_id = old_getter(self, "query_id")
 
-            tracker.track_access(model, pk, name, query_id)
+                tracker.track_access(model, pk, name, query_id)
     except AttributeError:
         pass
 
@@ -102,8 +106,11 @@ old_from_db = models.Model.from_db.__func__  # `__func__` because `from_db` is d
 def new_from_db(cls, db, field_names, values):
     instance = old_from_db(cls, db, field_names, values)
 
-    if (tracker := context.tracker()) and (query_id := context.query_id()):
-        tracker.track_instance(cls, instance, query_id, field_names)
+    tracker = context.tracker()
+    if tracker:
+        query_id = context.query_id()
+        if query_id:
+            tracker.track_instance(cls, instance, query_id, field_names)
 
     return instance
 
