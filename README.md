@@ -1,3 +1,5 @@
+![](https://github.com/mselee/query_diet/workflows/Tests/badge.svg)
+
 # query_diet
 
 [query_diet](https://github.com/seleem1337/query_diet) is a package that tracks queries made by the Django ORM. Currently, it tries to detect:
