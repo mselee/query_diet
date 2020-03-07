@@ -38,7 +38,7 @@ $ poetry add --dev query_diet
 # defaults
 QUERY_DIET_STRICT_RELATIONS=True
 QUERY_DIET_STRICT_COLUMNS=True
-QUERY_DIET_MACHINE_PREFIX=platform.node()
+QUERY_DIET_MACHINE_PREFIX=platform.node
 QUERY_DIET_USAGE_THRESHOLD=0
 QUERY_DIET_N1_THRESHOLD=0
 
@@ -184,6 +184,12 @@ def post_track_handler(sender, tracker):
 
 post_track.connect(post_track_handler)
 ```
+
+### Tags
+
+A unique query id is generated for every query. This id is included in the query in the form of a SQL comment.
+
+This is useful for cross-referencing database query logs against application requests.
 
 ### Analyzer
 
