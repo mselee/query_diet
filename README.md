@@ -9,15 +9,13 @@
 3. Deferred columns that could have been loaded eagerly.
 4. Basic N+1 queries (forward relations that can be solved via `select_related`).
 
-**NOTE: this should be used for development/testing/CI setups only.**
-
 ## Why
 
 The default behavior of the ORM makes it easy to have very fat queries that are inefficient.
 
 ## Why not
 
-Allergy to monkey-patching.
+There's lots of monkey-patching going on, so the usage of this package should be restricted to non-prod environments (e.g. local/development/testing/CI/etc)
 
 ## Support
 
