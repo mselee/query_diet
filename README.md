@@ -110,10 +110,15 @@ from query_diet.utils import assert_fitness
 
 from myapp.models import Foo
 
-def _custom_assert(tracker):
-    assert tracker.analyze().usage.models[Foo] == 100
+def _clear_caches(tracker):
+    pass
 
-@assert_fitness(usage=80, assertions=[_custom_assert])
+def _custom_assert(analyzer):
+    assert analyzer.usage.models[Foo] == 100
+
+# `pre` hooks are executed before the test is executed.
+# `post` hooks are executed after the built-in assertions (e.g. usage, n1, query_count) are executed.
+@assert_fitness(usage=80, pre=[_clear_caches], post=[_custom_assert])
 @pytest.mark.django_db
 def test_query_fitness():
     wonderful_big_fat_queries()

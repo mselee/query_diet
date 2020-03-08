@@ -62,7 +62,7 @@ def _assert_usage_is_100(analyzer):
     assert analyzer.usage.total == 100
 
 
-@assert_fitness(assertions=[_assert_usage_is_100])
+@assert_fitness(post=[_assert_usage_is_100])
 @pytest.mark.django_db
 def test_custom_assertion():
     Organization.objects.create()
