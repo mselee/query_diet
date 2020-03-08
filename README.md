@@ -67,7 +67,7 @@ Unused columns:
 
 ```python
 import pytest
-from query_diet.utils import assert_fitness
+from query_diet import assert_fitness
 
 # asserts that the column(s) usage % is >= 80
 @assert_fitness(usage=80)
@@ -80,7 +80,7 @@ N+1 relations:
 
 ```python
 import pytest
-from query_diet.utils import assert_fitness
+from query_diet import assert_fitness
 
 # asserts that the no. of N+1 violations is <= 0
 @assert_fitness(n1=0)
@@ -93,7 +93,7 @@ Queries count:
 
 ```python
 import pytest
-from query_diet.utils import assert_fitness
+from query_diet import assert_fitness
 
 # asserts that the no. of queries is <= 11
 @assert_fitness(query_count=11)
@@ -102,11 +102,11 @@ def test_query_fitness():
     wonderful_big_fat_queries()
 ```
 
-Reusable custom assertions:
+Assertion hooks:
 
 ```python
 import pytest
-from query_diet.utils import assert_fitness
+from query_diet import assert_fitness
 
 from myapp.models import Foo
 

@@ -1,7 +1,6 @@
 import pytest
 
-from query_diet import context
-from query_diet.utils import assert_fitness
+from query_diet import assert_fitness, context
 from tests.factories import AccountFactory
 from tests.project.example.models import Account, Organization
 
