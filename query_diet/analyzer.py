@@ -1,8 +1,6 @@
 import pandas as pd
 
-
-def humanize(value):
-    return round(value, 2)
+from query_diet.utils import humanize
 
 
 class BaseData:

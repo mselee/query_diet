@@ -5,6 +5,10 @@ class NOT_PROVIDED:
     pass
 
 
+def humanize(value):
+    return round(value, 2)
+
+
 def filter_field_names(field_names):
     return set(name for name in field_names if not name == "id" and not name.endswith("_id"))
 
