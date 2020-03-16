@@ -11,7 +11,7 @@ class TrackerMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        with context.tracker.scoped() as tracker:
+        with context.tracker.get_or_create() as tracker:
             pre_track.send(sender=self.__class__, tracker=tracker)
             response = self.get_response(request)
             post_track.send(sender=self.__class__, tracker=tracker)

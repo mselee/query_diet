@@ -24,6 +24,17 @@ class ScopedContextVar:
         finally:
             self.var.reset(token)
 
+    @contextmanager
+    def get_or_create(self):
+        value = self()
+        if not value and self.factory is not NOT_PROVIDED:
+            value = self.factory()
+        token = self.var.set(value)
+        try:
+            yield value
+        finally:
+            self.var.reset(token)
+
     def __call__(self):
         try:
             return self.var.get()
