@@ -1,4 +1,3 @@
-import shortuuid
 from django.db import models
 from django.db.models.fields.related_descriptors import ForeignKeyDeferredAttribute, ForwardManyToOneDescriptor
 from django.db.models.query_utils import DeferredAttribute
@@ -67,9 +66,9 @@ def new_fetch_all(self):
         old_fetch_all(self)
         return
 
-    query_id = shortuuid.uuid()
+    query_id = str(context.query_tagger()())
 
-    self.comment(f"{context.query_prefix()}:query_id:{query_id}")
+    self.comment(f"{context.query_prefix()()}:query_id:{query_id}")
 
     with context.query_id.scoped(query_id):
         old_fetch_all(self)

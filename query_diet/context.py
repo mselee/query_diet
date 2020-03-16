@@ -20,10 +20,12 @@ ignored = ScopedContextVar(__ignored)
 __is_strict_relations_enabled = ContextVar("strict_relations", default=defaults.is_strict_relations_enabled)
 __is_strict_columns_enabled = ContextVar("strict_columns", default=defaults.is_strict_columns_enabled)
 __query_prefix = ContextVar("query_prefix", default=defaults.query_prefix)
+__query_tagger = ContextVar("query_tagger", default=defaults.query_tagger)
 
 is_strict_relations_enabled = ScopedContextVar(__is_strict_relations_enabled)
 is_strict_columns_enabled = ScopedContextVar(__is_strict_columns_enabled)
 query_prefix = ScopedContextVar(__query_prefix)
+query_tagger = ScopedContextVar(__query_tagger)
 
 # assertions
 __usage_threshold = ContextVar("usage_threshold", default=defaults.usage_threshold)
