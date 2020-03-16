@@ -1,4 +1,7 @@
-![](https://github.com/mselee/query_diet/workflows/Tests/badge.svg)
+[![pypi][pypi-img]][pypi-url]
+[![checks][checks-img]][checks-url]
+[![dependabot][dependabot-img]][dependabot-url]
+[![license][license-img]][license-url]
 
 # query_diet
 
@@ -247,3 +250,25 @@ You can then compute different metrics about your queries. There's also some bas
     }
 }
 ```
+
+<!-- BADGES -->
+
+<!-- LICENSE -->
+
+[license-url]: https://github.com/mselee/query_diet/blob/master/LICENSE
+[license-img]: https://badgen.net/github/license/mselee/query_diet?cache=600
+
+<!-- CHECKS -->
+
+[checks-url]: https://github.com/mselee/query_diet/actions?query=workflow:Tests
+[checks-img]: https://badgen.net/github/checks/mselee/query_diet/master?cache=600
+
+<!-- PYPI -->
+
+[pypi-url]: https://pypi.org/project/query-diet
+[pypi-img]: https://badgen.net/pypi/v/query_diet?cache=600
+
+<!-- DEPENDABOT -->
+
+[dependabot-url]: https://github.com/mselee/query_diet/commits?author=dependabot[bot]
+[dependabot-img]: https://badgen.net/dependabot/mselee/query_diet/?label=dependabot&cache=600
