@@ -154,6 +154,54 @@ def test_query_fitness():
         assert analyzer.analysis["usage"]["models"][Foo] >= 80.0
 ```
 
+If you don't need/want to assert data, you can just use `@track_fitness`:
+
+```python
+import pytest
+from query_diet import track_fitness
+
+from myapp.models import Foo
+
+@track_fitness()
+@pytest.mark.django_db
+def test_query_fitness():
+    wonderful_big_fat_queries()
+```
+
+This create a local sqlite database called `fitness.sqlite3` which you can query to get a better understanding of your queries.
+
+Here's the schema:
+
+```sql
+$ sqlite3 fitness.sqlite3
+
+SQLite version 3.31.1 2020-01-27 19:55:54
+Enter ".help" for usage hints.
+
+sqlite> .schema
+CREATE TABLE fields (
+	"index" BIGINT,
+	"query" TEXT,
+	model TEXT,
+	pk BIGINT,
+	field TEXT,
+	used BIGINT,
+	lazy BIGINT,
+	"deferred" BIGINT,
+	n1 BIGINT
+);
+CREATE INDEX ix_fields_index ON fields ("index");
+CREATE TABLE queries (
+	"index" BIGINT,
+	sql TEXT,
+	query_prefix TEXT,
+	query_id TEXT
+);
+CREATE INDEX ix_queries_index ON queries ("index");
+```
+
+Remember to delete the the database before each new test cycle (e.g. `rm -f fitness.sqlite3`), as new rows will be appended if it already exists which can skew your data.
+
 ## Guide
 
 ### Explicit
