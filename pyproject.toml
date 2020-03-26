@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "query_diet"
-version = "0.1.1"
+version = "0.1.2"
 description = "A diet for losing query fats."
 authors = ["Mohamed Seleem <hi@mselee.com>"]
 homepage = "https://github.com/mselee/query_diet"
