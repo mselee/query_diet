@@ -195,7 +195,11 @@ CREATE TABLE queries (
 	"index" BIGINT,
 	sql TEXT,
 	query_prefix TEXT,
-	query_id TEXT
+	query_id TEXT,
+	module TEXT,
+	class TEXT,
+	func TEXT,
+	line TEXT
 );
 CREATE INDEX ix_queries_index ON queries ("index");
 ```

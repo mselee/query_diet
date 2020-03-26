@@ -1,3 +1,6 @@
+import inspect
+import sys
+
 from django.db import models
 from django.db.models.fields.related_descriptors import ForeignKeyDeferredAttribute, ForwardManyToOneDescriptor
 from django.db.models.query_utils import DeferredAttribute
@@ -65,10 +68,25 @@ def tag_query(func):
             func(self, *args, **kwargs)
             return
 
+        frame = sys._getframe()
+        while True:
+            frame = frame.f_back
+            module = inspect.getmodule(frame).__spec__.name
+            if not module.startswith("django"):
+                caller = frame.f_code.co_name
+                line = frame.f_lineno
+                caller_self = frame.f_locals.get("self", None)
+                klass = caller_self.__class__.__name__ if caller_self is not None else "N/A"
+                break
+
         query_prefix = str(context.query_prefix()())
         query_id = str(context.query_tagger()())
+        query_module = f"module:{module}"
+        query_class = f"class:{klass}"
+        query_func = f"func:{caller}"
+        query_line = f"line:{line}"
 
-        self.tag(f"query_prefix:{query_prefix}", f"query_id:{query_id}")
+        self.tag(f"query_prefix:{query_prefix}", f"query_id:{query_id}", query_module, query_class, query_func, query_line)
 
         with context.query_id.scoped(query_id):
             tracker.track_query(str(self.query))
