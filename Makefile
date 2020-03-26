@@ -5,6 +5,7 @@ check:
 
 .PHONY: test
 test:
+	@rm -f fitness.sqlite3
 	@poetry run pytest tests
 
 .PHONY: format

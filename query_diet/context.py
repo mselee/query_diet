@@ -1,5 +1,7 @@
 from contextvars import ContextVar
 
+from sqlalchemy import create_engine
+
 from query_diet import core, defaults
 from query_diet.scoped import ScopedContextVar
 
@@ -33,3 +35,6 @@ __n1_threshold = ContextVar("n1_threshold", default=defaults.n1_threshold)
 
 usage_threshold = ScopedContextVar(__usage_threshold)
 n1_threshold = ScopedContextVar(__n1_threshold)
+
+# sqlite
+db = create_engine("sqlite:///fitness.sqlite3")

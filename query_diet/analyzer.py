@@ -1,6 +1,6 @@
 import pandas as pd
 
-from query_diet.utils import humanize
+from query_diet import utils
 
 
 class BaseData:
@@ -13,7 +13,7 @@ class BaseData:
 class Usage(BaseData):
     def _group(self, *columns):
         grouped = self.df.groupby(list(columns)).agg({"field": "count", "used": "sum"})
-        grouped_percent = humanize(100 * (1 - (grouped.field - grouped.used) / grouped.field))
+        grouped_percent = utils.humanize(100 * (1 - (grouped.field - grouped.used) / grouped.field))
         return grouped_percent
 
     @property
@@ -39,7 +39,7 @@ class Usage(BaseData):
     @property
     def total(self):
         total = self.df.agg({"field": "count", "used": "sum"})
-        total_percent = humanize(100 * total.used / total.field)
+        total_percent = utils.humanize(100 * total.used / total.field)
         return total_percent
 
     @property
@@ -96,7 +96,7 @@ class Analyzer:
     __slots__ = ["df", "usage", "count", "n1"]
 
     def __init__(self, data):
-        self.df = self._construct_frame(data)
+        self.df = utils.construct_fields_frame(data)
         self.usage = Usage(self.df)
         self.count = Count(self.df)
         self.n1 = N1(self.df)
@@ -104,11 +104,3 @@ class Analyzer:
     @property
     def analysis(self):
         return {"usage": self.usage.as_dict, "n1": self.n1.as_dict, "count": self.count.as_dict}
-
-    def _construct_frame(self, data):
-        processed_data = [(*k, tuple([(k1,) + v1 for k1, v1 in data[k].fields.items()])) for k, v in data.items()]
-        df = pd.DataFrame.from_records(processed_data)
-        df.columns = ["query", "model", "pk", "field"]
-        df = df.explode("field")
-        df[["field", "used", "lazy", "deferred", "n1"]] = pd.DataFrame(df.field.tolist(), index=df.index)
-        return df

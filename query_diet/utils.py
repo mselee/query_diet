@@ -1,3 +1,7 @@
+import re
+
+import pandas as pd
+
 from query_diet import context
 
 
@@ -13,30 +17,38 @@ def filter_field_names(field_names):
     return set(name for name in field_names if not name == "id" and not name.endswith("_id"))
 
 
-def _assert_fitness(analyzer, usage, n1, query_count):
-    if isinstance(usage, (list, tuple)):
-        min_usage, max_usage = usage
-        assert (
-            min_usage <= analyzer.usage.total <= max_usage
-        ), f"Expected query usage to be >= {min_usage} and <= {max_usage} but got {analyzer.usage.total} instead."
-    else:
-        assert analyzer.usage.total >= usage, f"Expected query usage to be >= {usage} but got {analyzer.usage.total} instead."
+def construct_fields_frame(data):
+    processed_data = [(*k, tuple([(k1,) + v1 for k1, v1 in data[k].fields.items()])) for k, v in data.items()]
+    df = pd.DataFrame.from_records(processed_data)
+    df.columns = ["query", "model", "pk", "field"]
+    df = df.explode("field")
+    df[["field", "used", "lazy", "deferred", "n1"]] = pd.DataFrame(df.field.tolist(), index=df.index)
+    return df
 
-    if isinstance(n1, (list, tuple)):
-        min_n1, max_n1 = n1
-        assert (
-            min_n1 <= analyzer.n1.total <= max_n1
-        ), f"Expected N+1 queries to be >= {min_n1} and <= {max_n1} but got {analyzer.n1.total} instead."
-    else:
-        assert analyzer.n1.total <= n1, f"Expected N+1 queries to be <= {n1} but got {analyzer.n1.total} instead."
 
-    if query_count is not NOT_PROVIDED:
-        if isinstance(query_count, (list, tuple)):
-            min_count, max_count = query_count
-            assert (
-                min_count <= analyzer.count.queries <= max_count
-            ), f"Expected query count to be >= {min_count} and <= {max_count} but got {analyzer.count.queries} instead."
-        else:
-            assert (
-                analyzer.count.queries <= query_count
-            ), f"Expected query count to be <= {query_count} but got {analyzer.count.queries} instead."
+def export_fields_frame(frame):
+    df = frame.copy()
+    df.model = df.model.apply(lambda c: f"{c.__module__}.{c.__name__}")
+    df.to_sql(name="fields", con=context.db, if_exists="append", method="multi")
+
+
+def construct_queries_frame(data):
+    regex = re.compile(r"\/\*(.*:.*)\*\/")
+    processed_data = []
+    for query in data:
+        matches = re.findall(regex, query)
+        if not matches:
+            continue
+        entry = {"sql": query}
+        for match in matches:
+            key, value = match.split(":")
+            entry[key] = value
+        processed_data.append(entry)
+
+    df = pd.DataFrame.from_records(processed_data)
+    return df
+
+
+def export_queries_frame(frame):
+    df = frame.copy()
+    df.to_sql(name="queries", con=context.db, if_exists="append", method="multi")

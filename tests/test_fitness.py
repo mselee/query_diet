@@ -1,6 +1,6 @@
 import pytest
 
-from query_diet import assert_fitness, context
+from query_diet import assert_fitness, context, track_fitness
 from tests.factories import OrganizationFactory
 from tests.project.example.models import Organization
 
@@ -102,3 +102,26 @@ def test_assertion_n1_range_fails():
         org = Organization.objects.first()
         org.name
         org.yesno
+
+
+@track_fitness()
+@pytest.mark.django_db
+def test_track_fitness():
+    Organization.objects.create()
+    org = Organization.objects.first()
+    org.name
+    org.yesno
+
+
+@track_fitness()
+def test_track_fitness_empty():
+    pass
+
+
+@assert_fitness(usage=50)
+@track_fitness()
+@pytest.mark.django_db
+def test_track_fitness_inside_assert_fitness():
+    Organization.objects.create()
+    org = Organization.objects.first()
+    org.name

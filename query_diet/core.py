@@ -24,35 +24,39 @@ class TrackedValue:
 
 
 class Tracker:
-    __slots__ = ["tracked_fields"]
+    __slots__ = ["fields", "queries"]
 
     def __init__(self):
-        self.tracked_fields = {}
+        self.fields = {}
+        self.queries = []
+
+    def track_query(self, query):
+        self.queries.append(query)
 
     def track_instance(self, model, instance, query_id, field_names):
         query_fields = utils.filter_field_names(field_names)
         setattr(instance, "query_id", query_id)
         setattr(instance, "query_fields", query_fields)
-        self.tracked_fields[(query_id, model, instance.pk)] = TrackedValue(query_fields)
+        self.fields[(query_id, model, instance.pk)] = TrackedValue(query_fields)
 
     def track_access(self, model, pk, field_name, query_id, lazy=False):
         key = (query_id, model, pk)
         used = 1
         deferred = int(self.is_deferred_violation(model, pk)) if lazy else 0
         nplusone = int(self.is_nplusone_relation(query_id, model, pk, field_name)) if lazy else 0
-        self.tracked_fields[key][field_name] = used, lazy, deferred, nplusone
+        self.fields[key][field_name] = used, lazy, deferred, nplusone
 
     def is_deferred_violation(self, model, pk):
-        for _, _model, _pk in self.tracked_fields.keys():
+        for _, _model, _pk in self.fields.keys():
             if _model == model and _pk == pk:
                 return True
         return False
 
     def is_nplusone_relation(self, query, model, pk, field):
         try:
-            for _query, _model, _pk in self.tracked_fields.keys():
+            for _query, _model, _pk in self.fields.keys():
                 if _query == query and _model == model and _pk != pk:
-                    used, lazy, deferred, nplusone = self.tracked_fields[_query, _model, _pk][field]
+                    used, lazy, deferred, nplusone = self.fields[_query, _model, _pk][field]
                     return bool(lazy) or bool(nplusone)
         except KeyError:
             pass
@@ -62,9 +66,9 @@ class Tracker:
         raise NotImplementedError
 
     def analyze(self):
-        return analyzer.Analyzer(self.tracked_fields) if self.tracked_fields else None
+        return analyzer.Analyzer(self.fields) if self.fields else None
 
     @property
     def diag(self):
-        queries, models, pks = list(zip(*self.tracked_fields.keys()))
+        queries, models, pks = list(zip(*self.fields.keys()))
         return set(queries), set(models), set(pks)
