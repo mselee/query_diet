@@ -313,7 +313,7 @@ You can then compute different metrics about your queries. There's also some bas
 <!-- CHECKS -->
 
 [checks-url]: https://github.com/mselee/query_diet/actions?query=workflow:Tests
-[checks-img]: https://badgen.net/github/checks/mselee/query_diet/master
+[checks-img]: https://badgen.net/github/checks/mselee/query_diet/master?label=checks
 
 <!-- PYPI -->
 
