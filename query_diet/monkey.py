@@ -55,23 +55,26 @@ def new_des_get(self, instance, cls=None):
     return ret
 
 
-# Tag the active query
-
-old_fetch_all = models.QuerySet._fetch_all
+# Decorator for tagging the active query
 
 
-def new_fetch_all(self):
-    tracker = context.tracker()
-    if not tracker:
-        old_fetch_all(self)
-        return
+def tag_query(func):
+    def wrapped(self, *args, **kwargs):
+        tracker = context.tracker()
+        if not tracker:
+            func(self, *args, **kwargs)
+            return
 
-    query_id = str(context.query_tagger()())
+        query_prefix = str(context.query_prefix()())
+        query_id = str(context.query_tagger()())
 
-    self.comment(f"{context.query_prefix()()}:query_id:{query_id}")
+        self.tag(f"query_prefix:{query_prefix}", f"query_id:{query_id}")
 
-    with context.query_id.scoped(query_id):
-        old_fetch_all(self)
+        with context.query_id.scoped(query_id):
+            tracker.track_query(str(self.query))
+            return func(self, *args, **kwargs)
+
+    return wrapped
 
 
 # Track field access
@@ -123,7 +126,10 @@ def patch():
         DeferredAttribute.__get__ = new_get
     else:
         ForeignKeyDeferredAttribute.__get__ = new_get
-    models.QuerySet._fetch_all = new_fetch_all
+    models.QuerySet._fetch_all = tag_query(models.QuerySet._fetch_all)
+    models.QuerySet.update = tag_query(models.QuerySet.update)
+    models.QuerySet.aggregate = tag_query(models.QuerySet.aggregate)
+    models.QuerySet.delete = tag_query(models.QuerySet.delete)
     setattr(models.Model, "__getattribute__", __getattribute__)
     setattr(models.Model, "from_db", new_from_db)
     comment.patch()

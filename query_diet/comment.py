@@ -3,29 +3,38 @@ import inspect
 from django.db.models import query, sql
 from django.db.models.sql import compiler
 
-COMMENT_START = "/*"
-COMMENT_END = "*/"
+
+def add_comment_to_sql(sql, params, comment):
+    return f"{comment}{sql}", params
 
 
 class CompilerMixin:
-    def _insert_comments(self, pair):
-        comments = self.query.comments
-        if not comments:
-            return pair
-
-        sql, params = pair
-        lines = [f"{COMMENT_START} {c} {COMMENT_END}" for c in comments]
-        lines.append(sql)
-        sql = " ".join(lines)
-        return sql, params
+    def get_comment_sql(self):
+        comments = []
+        for comment, multi in self.query.comments:
+            if multi:
+                if "*/" in comment:
+                    raise SyntaxError
+                comment = "/*%s*/" % comment
+            else:
+                if "\n" in comment:
+                    raise SyntaxError
+                comment = "--%s\n" % comment
+            comments.append(comment)
+        sql = "\n".join(comments)
+        if sql and not sql.endswith("\n"):
+            sql += "\n"
+        return sql
 
     def as_sql(self, *args, **kwargs):
         result = super().as_sql(*args, **kwargs)
 
+        comment = self.get_comment_sql()
         if isinstance(result, list):
-            result = [self._insert_comments(pair) for pair in result]
+            result = [add_comment_to_sql(sql, params, comment) for sql, params in result]
         else:
-            result = self._insert_comments(result)
+            sql, params = result
+            result = add_comment_to_sql(sql, params, comment)
 
         return result
 
@@ -53,14 +62,21 @@ class Query(sql.Query):
         return obj
 
 
-def comment(self, *comments):
-    for c in comments:
-        assert isinstance(c, str), "comments must be strings."
-        assert COMMENT_START not in c, f"'{COMMENT_START}' is not allowed in comment blocks."
-        assert COMMENT_END not in c, f"'{COMMENT_END}' is not allowed in comment blocks."
-
-    self.query.comments += comments
+def tag(self, *comments, multi=True):
+    """
+    Mutates the current QuerySet with `comments` added to query as SQL comments.
+    """
+    self.query.comments += [(c, multi) for c in comments]
     return self
+
+
+def comment(self, *comments, multi=True):
+    """
+    Return a new QuerySet with `comments` added to query as SQL comments.
+    """
+    clone = self._chain()
+    clone.query.comments += [(c, multi) for c in comments]
+    return clone
 
 
 # ******************************
@@ -69,6 +85,7 @@ def comment(self, *comments):
 
 
 def patch():
+    query.QuerySet.tag = tag
     query.QuerySet.comment = comment
     sql.Query = Query
     sql.UpdateQuery.__bases__ = (sql.Query,)
